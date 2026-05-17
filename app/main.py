@@ -1,7 +1,5 @@
 
 import streamlit as st
-from Services.text_extraction import extract_text_from_pdf
-from core.exceptions import PDFExtractionError
 from core.config import VOICE_OPTION
 import requests
 
@@ -61,9 +59,13 @@ with tab_podcast:
     if uploaded_file:
 
         try:
-            extracted_text = extract_text_from_pdf(uploaded_file)
-        except PDFExtractionError as e:
-            st.error(f"Error in Extracting Texts From PDF. {e}")
+            response = requests.post("http://127.0.0.1:8000/extract-pdf-text", files={"file": uploaded_file})
+            if response.status_code != 200:
+                st.error(response.json()["detail"])
+                st.stop()
+            extracted_text = response.text
+        except Exception as e:
+            st.error("Error during text extraction from pdf")
             st.stop()
 
         if st.button("Generate AI Podcast"):

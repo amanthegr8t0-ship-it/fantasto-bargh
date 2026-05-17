@@ -2,12 +2,12 @@ import fitz
 from core.exceptions import PDFExtractionError
 
 
-def extract_text_from_pdf(pdf_file):
+def extract_text_from_pdf(pdf_file_content):
     try:
         text = ""
 
         pdf_document = fitz.open(
-            stream=pdf_file.read(),
+            stream=pdf_file_content,
             filetype="pdf"
         )
 
