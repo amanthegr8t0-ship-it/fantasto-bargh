@@ -1,6 +1,6 @@
 
 import streamlit as st
-from core.config import VOICE_OPTION
+from core.config import VOICE_OPTION, FASTAPI_URL
 import requests
 
 st.set_page_config(
@@ -26,7 +26,7 @@ with tab_audio_podcast:
 
         else:
             try:
-                response = requests.post("http://127.0.0.1:8000/generate-text-to-speech", json={"text": user_input, "model": select_model})
+                response = requests.post(f"{FASTAPI_URL}/generate-text-to-speech", json={"text": user_input, "model": select_model})
                 if response.status_code != 200:
                     st.error(response.json()["detail"])
                     st.stop()
@@ -59,7 +59,7 @@ with tab_podcast:
     if uploaded_file:
 
         try:
-            response = requests.post("http://127.0.0.1:8000/extract-pdf-text", files={"file": uploaded_file})
+            response = requests.post(f"{FASTAPI_URL}/extract-pdf-text", files={"file": uploaded_file})
             if response.status_code != 200:
                 st.error(response.json()["detail"])
                 st.stop()
@@ -71,7 +71,7 @@ with tab_podcast:
         if st.button("Generate AI Podcast"):
 
             try:
-                response = requests.post("http://127.0.0.1:8000/generate-pdf-to-podcast", json={"text": extracted_text, "model": select_model})
+                response = requests.post(f"{FASTAPI_URL}/generate-pdf-to-podcast", json={"text": extracted_text, "model": select_model})
                 if response.status_code != 200:
                     st.error(response.json()["detail"])
                     st.stop()
