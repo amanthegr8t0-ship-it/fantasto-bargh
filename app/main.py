@@ -2,6 +2,7 @@
 import streamlit as st
 from core.config import VOICE_OPTION, FASTAPI_URL
 import requests
+import time
 
 st.set_page_config(
     page_title="PDF To Podcast AI",
@@ -26,14 +27,30 @@ with tab_audio_podcast:
 
         else:
             try:
+                status_text = st.empty()
                 response = requests.post(f"{FASTAPI_URL}/generate-text-to-speech", json={"text": user_input, "model": select_model})
                 if response.status_code != 200:
                     st.error(response.json()["detail"])
                     st.stop()
-                audio_bytes = response.content
+                job_id = response.json()["job_id"]
+                count = 0
+                while True:
+                    counter = count%3
+                    status_response = requests.get(f"{FASTAPI_URL}/job/tts/{job_id}")
+                    # status_text.write(f"Status code: {status_response.status_code}")
+
+                    if status_response.headers["content-type"] == "audio/mpeg":
+                        status_text.write("Status : Completed")
+                        audio_bytes = status_response.content
+                        break
+
+                    status = status_response.json()["status"]
+                    status_text.write(f"Status : {status}"+int(counter)*".")
+                    time.sleep(3)
+                    count += 1
 
             except Exception as e:
-                st.error("Something unexpected went wrong. Please try again.")
+                st.error(f"Error: {type(e).__name__}: {str(e)}")
                 st.stop()
 
             if audio_bytes is not None:
@@ -59,6 +76,7 @@ with tab_podcast:
     if uploaded_file:
 
         try:
+            status_text2 = st.empty()
             response = requests.post(f"{FASTAPI_URL}/extract-pdf-text", files={"file": uploaded_file})
             if response.status_code != 200:
                 st.error(response.json()["detail"])
@@ -75,10 +93,24 @@ with tab_podcast:
                 if response.status_code != 200:
                     st.error(response.json()["detail"])
                     st.stop()
-                audio_bytes2 = response.content
+                job_id2 = response.json()["job_id"]
+                count = 0
+                while True:
+                    counter = count%3
+                    status_response = requests.get(f"{FASTAPI_URL}/job/podcast/{job_id2}")
+
+                    if status_response.headers["content-type"] == "audio/mpeg":
+                        status_text2.write("Status : Completed")
+                        audio_bytes2 = status_response.content
+                        break
+
+                    status = status_response.json()["status"]
+                    status_text2.write(f"Status : {status}"+int(counter)*".")
+                    time.sleep(3)
+                    count += 1
 
             except Exception as e:
-                st.error("Something unexpected went wrong. Please try again.")
+                st.error(f"Something unexpected went wrong. Please try again. {e}")
                 st.stop()
                 
 

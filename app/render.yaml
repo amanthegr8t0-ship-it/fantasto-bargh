@@ -1,0 +1,22 @@
+services:
+  # 1. The API (Handles web requests)
+  - type: web
+    name: fantasto-bargh-api
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn api.api:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+  # 2. The Background Worker (Handles audio generation)
+  - type: worker
+    name: fantasto-bargh-worker
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A api.tasks worker --loglevel=info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: REDIS_URL
+        value: redis://redis:6379/0
