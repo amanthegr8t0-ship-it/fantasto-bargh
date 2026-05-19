@@ -18,5 +18,3 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: REDIS_URL
-        value: redis://redis:6379/0
