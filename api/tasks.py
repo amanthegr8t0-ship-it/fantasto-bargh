@@ -1,10 +1,11 @@
 from celery import Celery
 from controllers import podcast_controller  as pc
+from core.config import REDIS_URL
 import base64 
 celery_app = Celery(
     "podcast",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/0"
+    broker=REDIS_URL,
+    backend=REDIS_URL
 )
 
 @celery_app.task

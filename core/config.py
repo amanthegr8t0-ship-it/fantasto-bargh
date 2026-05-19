@@ -30,3 +30,5 @@ MAX_TOKEN = 500
 CONTEXT_SIZE = 150
 VOICE_OPTION = ["Jason","Aria"]
 FASTAPI_URL = os.getenv("FASTAPI_URL", "https://fantasto-bargh.onrender.com")
+# FASTAPI_URL = os.getenv("FASTAPI_URL", "http://127.0.0.1:8000")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
