@@ -1,0 +1,4 @@
+fatb/
+__pycache__/
+*.pyc
+.env
