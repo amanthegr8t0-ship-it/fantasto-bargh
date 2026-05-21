@@ -10,6 +10,16 @@ import base64
 from core.database import SessionLocal, Job
 
 app = FastAPI()
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class PodcastRequest(BaseModel):
     text: str
     model : str
@@ -28,7 +38,7 @@ async def generate_tts(request: PodcastRequest):
     except AudioGenerationError:
         raise HTTPException (status_code= 500, detail="Something went wrong while generating audio")
     except Exception as e:
-        raise HTTPException (status_code= 500, detail="Something went wrong on our side")
+        raise HTTPException (status_code= 500, detail=f"Something went wrong on our side {e}")
 
 
 @app.post("/generate-pdf-to-podcast")
