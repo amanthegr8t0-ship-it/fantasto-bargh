@@ -4,11 +4,13 @@ import { useState, useRef } from 'react'
 function PODCASTTAB({model}){
   const [trackStatus, setTrackStatus] = useState("")
   const [finalResult, setFinalResult] = useState(null)
+  const [isloading, setisloading] = useState(false)
   const [pdfFile, setPdfFile] = useState(null)
   const intervalRef = useRef(null)
 
 
-  const Generate = async () => {clearInterval(intervalRef.current)
+  const Generate = async () => {setisloading(true)
+    clearInterval(intervalRef.current)
     const formData = new FormData()
     formData.append("file", pdfFile)
     const extractResponse = await fetch("http://127.0.0.1:8000/extract-pdf-text", {
@@ -32,13 +34,14 @@ function PODCASTTAB({model}){
       clearInterval(intervalRef.current)
       const audioBlob = await statusResponse.blob()
       setFinalResult(audioBlob)
+      setisloading(false)
     } else {
     const statusData = await statusResponse.json()
     setTrackStatus(statusData.status)
     }
     }, 3000)
   }
-  return(<div> <input type="file" accept='.pdf' onChange={(e) => setPdfFile(e.target.files[0])}/> <button onClick={Generate}>Generate</button> {finalResult && <audio controls src={URL.createObjectURL(finalResult)} />} </div>
+  return(<div> <input type="file" accept='.pdf' onChange={(e) => setPdfFile(e.target.files[0])}/>  <button onClick={Generate} disabled={isloading}>Generate</button> <p>{trackStatus}</p> {finalResult && <audio controls src={URL.createObjectURL(finalResult)} />} </div>
     )
 }
 

@@ -3,9 +3,11 @@ import { useState, useRef } from 'react'
 function TTSTab({model}) {const [trackStatus, setTrackStatus] = useState("")
 const [finalTtsResult, setFinalTtsResult] = useState(null)
 const [ttxtext, setTtstext] = useState("")
+const [isloading, setisloading] = useState(false)
 const intervalRef = useRef(null)
 
-const Send = async () => {clearInterval(intervalRef.current)
+const Send = async () => {setisloading(true) 
+    clearInterval(intervalRef.current)
   const response = await fetch("http://127.0.0.1:8000/generate-text-to-speech", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -21,13 +23,14 @@ const Send = async () => {clearInterval(intervalRef.current)
     clearInterval(intervalRef.current)
     const audioBlob = await statusResponse.blob()
     setFinalTtsResult(audioBlob)
+    setisloading(false)
   } else {
   const statusData = await statusResponse.json()
   setTrackStatus(statusData.status)
   }
   }, 3000)
   }
-  return ( <div> <textarea value={ttxtext} onChange={(e) => setTtstext(e.target.value)}placeholder="Enter Your Text Here"></textarea>  <button onClick={Send}>Send</button> <p>{trackStatus}</p>
+  return ( <div> <textarea value={ttxtext} onChange={(e) => setTtstext(e.target.value)}placeholder="Enter Your Text Here"></textarea>  <button onClick={Send} disabled={isloading}>Send</button> <p>{trackStatus}</p>
       {finalTtsResult && <audio controls src={URL.createObjectURL(finalTtsResult)} />} </div>)
       }
 
