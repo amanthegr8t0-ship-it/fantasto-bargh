@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import FastAPI, Response, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from controllers import podcast_controller as pc
@@ -6,8 +7,19 @@ import asyncio
 from api.tasks import generate_podcast_task, generate_text_to_speech_task, celery_app
 from celery.result import AsyncResult
 import base64
+from core.database import SessionLocal, Job
 
 app = FastAPI()
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class PodcastRequest(BaseModel):
     text: str
     model : str
@@ -16,19 +28,27 @@ class PodcastRequest(BaseModel):
 async def generate_tts(request: PodcastRequest):
     try:
         job = generate_text_to_speech_task.delay(request.text, request.model)  # fires and forgets
+        db = SessionLocal()
+        db.add(Job(job_id=job.id, status="PENDING", created_at=datetime.now()))
+        db.commit()
+        db.close()
         return {"job_id": job.id}
     except ConfigurationError:
         raise HTTPException (status_code= 500, detail="Something went wrong while connecting the server")
     except AudioGenerationError:
         raise HTTPException (status_code= 500, detail="Something went wrong while generating audio")
     except Exception as e:
-        raise HTTPException (status_code= 500, detail="Something went wrong on our side")
+        raise HTTPException (status_code= 500, detail=f"Something went wrong on our side {e}")
 
 
 @app.post("/generate-pdf-to-podcast")
 async def generate_podcast(request: PodcastRequest):
     try:
         job = generate_podcast_task.delay(request.text, request.model)  # fires and forgets
+        db = SessionLocal()
+        db.add(Job(job_id=job.id, status="PENDING", created_at=datetime.now()))
+        db.commit()
+        db.close()
         return {"job_id": job.id}
     except ScriptGenerationError:
         raise HTTPException (status_code= 500, detail="Something went wrong while generating script")

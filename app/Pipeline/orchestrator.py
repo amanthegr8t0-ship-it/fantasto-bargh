@@ -4,6 +4,7 @@ from Services import llm_engine as Ai_eg
 import tempfile
 from Services import audio_generation as ag
 from core.exceptions import *   
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 from core.config import CONTEXT_SIZE
 logger = logging.getLogger(__name__)
@@ -83,17 +84,38 @@ class PodcastPipeline:
             audio_chunks = ch.create_audio_chunks(clean_text)
             tts_service = Ai_eg.authorization()
             with  tempfile.TemporaryDirectory() as tem_dir:
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    future_to_index = {
+                        executor.submit(
+                            ag.generate_studio_audio, 
+                             tem_dir,
+                            audio_chunk, 
+                            select_model,
+                            tts_service, 
+                            index
+                        ) : index for index, audio_chunk in enumerate(audio_chunks)
+                    }
+                    completed_count = 0 
+                    for future in as_completed(future_to_index):
+                        index = future_to_index[future]
+                        try:
+                            future.result()
+                            completed_count += 1
+                            if on_progress2:
+                                on_progress2(completed_count, len(audio_chunks))
+                        except Exception as e:
+                            logger.error(f"thread for audio_chunk {index+1} failed: {e}")
 
-                for index, audio_chunk in enumerate(audio_chunks):
-                    if on_progress2:
-                        on_progress2(index + 1, len(audio_chunks))
-                    ag.generate_studio_audio(
-                        tem_dir,
-                        audio_chunk, 
-                        select_model,
-                        tts_service, 
-                        index
-                    )
+                # for index, audio_chunk in enumerate(audio_chunks):
+                #     if on_progress2:
+                #         on_progress2(index + 1, len(audio_chunks))
+                #     ag.generate_studio_audio(
+                #         tem_dir,
+                #         audio_chunk, 
+                #         select_model,
+                #         tts_service, 
+                #         index
+                #     )
 
                 self.final_audio_bytes = ag.export_the_audio(tem_dir, audio_chunks)
             self.state = PipelineState.DONE

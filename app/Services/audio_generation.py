@@ -8,26 +8,32 @@ import logging
 logger = logging.getLogger(__name__)
 
 def generate_studio_audio(tem_dir,audio_chunk, select_model, tts_service,index):
-    try:
-        if audio_chunk.strip():
+    
+    for attempt in range(3):
+
+        try:
+            if audio_chunk.strip():
+                    
+                response = user_selected_model(audio_chunk, tts_service, select_model)
+
+                raw_audio = pb.AudioSegment(
+                data=response.audio,
+                sample_width=2,
+                frame_rate = SAMPLE_HZ,
+                channels = 1
+                )
+                output_path = os.path.join(tem_dir, f"podcast_part_{index}.wav")
+                with open (output_path, "wb") as f:
+                    raw_audio.export(f, format="wav")
+
+                logger.info("studio audio generaion successful.")
+                break
                 
-            response = user_selected_model(audio_chunk, tts_service, select_model)
-
-            raw_audio = pb.AudioSegment(
-            data=response.audio,
-            sample_width=2,
-            frame_rate = SAMPLE_HZ,
-            channels = 1
-            )
-            output_path = os.path.join(tem_dir, f"podcast_part_{index}.wav")
-            with open (output_path, "wb") as f:
-                raw_audio.export(f, format="wav")
-
-            logger.info("studio audio generaion successful.")
-            
-    except Exception as e :
-        logger.error(f"Audio generation Failed. {e}")
-        raise AudioGenerationError(f"Audio generation Failed. {e}") from e 
+        except Exception as e :
+            logger.warning(f"Audio generation attempt {attempt + 1} failed for chunk {index}: {e}")
+            if attempt == 2:
+                logger.error(f"Audio generation Failed. {e}")
+                raise AudioGenerationError(f"Audio generation Failed. {e}") from e 
 
 def export_the_audio(tem_dir, audio_chunks):
 

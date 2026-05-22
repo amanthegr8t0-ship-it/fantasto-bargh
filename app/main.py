@@ -14,9 +14,9 @@ st.subheader("Welcomes you",  text_alignment= "center")
 st.write("Turn study materials, research papers, Text and documents into AI-generated podcast episodes.")
 select_model = st.selectbox("Select Model", VOICE_OPTION)
 
-tab_podcast, tab_audio_podcast = st.tabs(["🎙️ PDF To Podcast", "✍️ Text to Speech"])
+tab_podcast, tab_audio = st.tabs(["🎙️ PDF To Podcast", "✍️ Text to Speech"])
 
-with tab_audio_podcast:
+with tab_audio:
 
     user_input = st.text_area("Enter your prompt")
     
