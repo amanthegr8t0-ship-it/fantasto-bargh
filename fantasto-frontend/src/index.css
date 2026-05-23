@@ -1,15 +1,15 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
+  --text: #d7d9ff;
+  --text-h: #fafcff;
+  --bg: #050713;
+  --border: rgba(255, 255, 255, 0.08);
+  --code-bg: rgba(255, 255, 255, 0.06);
+  --accent: #96b8ff;
+  --accent-bg: rgba(114, 96, 255, 0.14);
+  --accent-border: rgba(114, 96, 255, 0.35);
+  --social-bg: rgba(100, 124, 255, 0.12);
   --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+    rgba(14, 20, 60, 0.18) 0 10px 25px -5px, rgba(39, 52, 110, 0.16) 0 4px 8px -2px;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -17,7 +17,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -52,6 +52,11 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, rgba(150, 190, 255, 0.08), transparent 15%),
+    radial-gradient(circle at 80% 12%, rgba(120, 90, 255, 0.14), transparent 14%),
+    linear-gradient(180deg, #050713 0%, #081126 40%, #0d1633 100%);
+  color: var(--text);
 }
 
 #root {
@@ -59,7 +64,7 @@ body {
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
+  border-inline: 1px solid rgba(255, 255, 255, 0.06);
   min-height: 100svh;
   display: flex;
   flex-direction: column;

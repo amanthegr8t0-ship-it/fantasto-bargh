@@ -9,17 +9,31 @@ function App() {
   const [activeTab, setActiveTab] = useState("tts")
 
   return (
-    <>
-      <h1>Fantasto Baragh</h1>
-      <button onClick={() => setActiveTab("tts")}>Text to Speech</button>
-      <button onClick={() => setActiveTab("podcast")}>PDF To Podcast</button>
-      <select value={activemodel} onChange={(e) => setActiveModel(e.target.value)}>
-        <option value="Jason">Jason</option>
-        <option value="Aria">Aria</option>
-      </select>
-      {activeTab === "tts" && <TTSTab model={activemodel} />}
-      {activeTab === "podcast" && <PODCASTTAB model={activemodel} />}
-    </>
+    <div className="app-shell">
+      <header className="app-header">
+        <div>
+          <p className="eyebrow">AI Audio Studio</p>
+          <h1>Fantasto Baragh</h1>
+        </div>
+        <div className="model-control">
+          <label htmlFor="model-select">Voice</label>
+          <select id="model-select" value={activemodel} onChange={(e) => setActiveModel(e.target.value)}>
+            <option value="Jason">Jason</option>
+            <option value="Aria">Aria</option>
+          </select>
+        </div>
+      </header>
+
+      <div className="tabs">
+        <button className={`tab-button ${activeTab === "tts" ? "active" : ""}`} onClick={() => setActiveTab("tts")}>Text to Speech</button>
+        <button className={`tab-button ${activeTab === "podcast" ? "active" : ""}`} onClick={() => setActiveTab("podcast")}>PDF to Podcast</button>
+      </div>
+
+      <main className="tab-panel">
+        {activeTab === "tts" && <TTSTab model={activemodel} />}
+        {activeTab === "podcast" && <PODCASTTAB model={activemodel} />}
+      </main>
+    </div>
   )
 }
 

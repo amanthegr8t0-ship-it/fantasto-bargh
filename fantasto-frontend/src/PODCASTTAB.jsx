@@ -41,8 +41,29 @@ function PODCASTTAB({model}){
     }
     }, 3000)
   }
-  return(<div> <input type="file" accept='.pdf' onChange={(e) => setPdfFile(e.target.files[0])}/>  <button onClick={Generate} disabled={isloading}>Generate</button> <p>{trackStatus}</p> {finalResult && <audio controls src={URL.createObjectURL(finalResult)} />} </div>
-    )
+  return (
+    <div className="panel panel-podcast">
+      <div className="file-input-group">
+        <label className="field-label" htmlFor="pdf-upload">Upload PDF</label>
+        <input
+          id="pdf-upload"
+          className="file-input"
+          type="file"
+          accept='.pdf'
+          onChange={(e) => setPdfFile(e.target.files[0])}
+        />
+      </div>
+      <div className="panel-actions">
+        <button className="primary-button" onClick={Generate} disabled={isloading}>Generate</button>
+        <span className="status-text">{trackStatus}</span>
+      </div>
+      {finalResult && (
+        <div className="audio-card">
+          <audio className="audio-player" controls src={URL.createObjectURL(finalResult)} />
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default PODCASTTAB

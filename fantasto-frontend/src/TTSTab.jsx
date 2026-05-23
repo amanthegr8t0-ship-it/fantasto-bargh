@@ -30,8 +30,27 @@ const Send = async () => {setisloading(true)
   }
   }, 3000)
   }
-  return ( <div> <textarea value={ttxtext} onChange={(e) => setTtstext(e.target.value)}placeholder="Enter Your Text Here"></textarea>  <button onClick={Send} disabled={isloading}>Send</button> <p>{trackStatus}</p>
-      {finalTtsResult && <audio controls src={URL.createObjectURL(finalTtsResult)} />} </div>)
-      }
+  return (
+    <div className="panel panel-tts">
+      <label className="field-label" htmlFor="tts-text">Enter your text</label>
+      <textarea
+        id="tts-text"
+        className="panel-textarea"
+        value={ttxtext}
+        onChange={(e) => setTtstext(e.target.value)}
+        placeholder="Enter Your Text Here"
+      ></textarea>
+      <div className="panel-actions">
+        <button className="primary-button" onClick={Send} disabled={isloading}>Send</button>
+        <span className="status-text">{trackStatus}</span>
+      </div>
+      {finalTtsResult && (
+        <div className="audio-card">
+          <audio className="audio-player" controls src={URL.createObjectURL(finalTtsResult)} />
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default TTSTab
