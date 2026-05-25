@@ -7,6 +7,7 @@ from core.exceptions import *
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 from core.config import CONTEXT_SIZE
+
 logger = logging.getLogger(__name__)
 
 class PipelineState(Enum):
@@ -28,6 +29,8 @@ class PodcastPipeline:
         self.final_audio_bytes = None
 
         self.last_error = None
+
+        self.allchunks = None
 
 
     def initialize_pipeline(self):
@@ -70,6 +73,7 @@ class PodcastPipeline:
         if self.state != PipelineState.GENERATING_SCRIPT:
             logger.error(f"Cannot generate script from state: {self.state}")
             raise RuntimeError(f"Cannot generate script from state: {self.state}")
+        # self.full_podcast_script=ch.chunk_text(self.raw_text)
         self.full_podcast_script=self.raw_text
         self.state = PipelineState.SCRIPT_READY
         logger.info("path making succeded")
@@ -81,7 +85,7 @@ class PodcastPipeline:
         self.state = PipelineState.GENERATING_AUDIO
         try:
             clean_text = ch.clean_chunk(self.full_podcast_script)
-            audio_chunks = ch.create_audio_chunks(clean_text)
+            self.allchunks = ch.create_audio_chunks(clean_text)
             tts_service = Ai_eg.authorization()
             with  tempfile.TemporaryDirectory() as tem_dir:
                 with ThreadPoolExecutor(max_workers=5) as executor:
@@ -93,7 +97,7 @@ class PodcastPipeline:
                             select_model,
                             tts_service, 
                             index
-                        ) : index for index, audio_chunk in enumerate(audio_chunks)
+                        ) : index for index, audio_chunk in enumerate(self.allchunks)
                     }
                     completed_count = 0 
                     for future in as_completed(future_to_index):
@@ -102,28 +106,20 @@ class PodcastPipeline:
                             future.result()
                             completed_count += 1
                             if on_progress2:
-                                on_progress2(completed_count, len(audio_chunks))
+                                on_progress2(completed_count, len(self.allchunks))
                         except Exception as e:
                             logger.error(f"thread for audio_chunk {index+1} failed: {e}")
 
-                # for index, audio_chunk in enumerate(audio_chunks):
-                #     if on_progress2:
-                #         on_progress2(index + 1, len(audio_chunks))
-                #     ag.generate_studio_audio(
-                #         tem_dir,
-                #         audio_chunk, 
-                #         select_model,
-                #         tts_service, 
-                #         index
-                #     )
 
-                self.final_audio_bytes = ag.export_the_audio(tem_dir, audio_chunks)
+                self.final_audio_bytes = ag.export_the_audio(tem_dir, self.allchunks)
             self.state = PipelineState.DONE
-            logger.info(f"audio generation succeded, Generated {len(audio_chunks)} audio packages")
-            return self.final_audio_bytes
+            logger.info(f"audio generation succeded, Generated {len(self.allchunks)} audio packages")
+            return self.final_audio_bytes, self.allchunks
 
         except Exception as e:
             self.state = PipelineState.FAILED
             self.last_error = f"Audio Generation Failed {str(e)}"
             logger.error(f"audio generation failed : {e}")
             raise AudioGenerationError(self.last_error) from e
+        
+    

@@ -16,7 +16,7 @@ def _require(key: str) -> str:
 NVIDIA_API_KEY = _require("NVIDIA_API_KEY")
 
 CHUNK_SIZE = 1000
-MAX_CHAR = 350
+MAX_CHAR = 200
 RIVA_URI = "grpc.nvcf.nvidia.com:443"
 RIVA_FUNCTION_ID = "877104f7-e885-42b9-8de8-f6e4c6303969"
 LANGUAGE = "en-US"

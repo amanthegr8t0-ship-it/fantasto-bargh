@@ -8,6 +8,13 @@ from api.tasks import generate_podcast_task, generate_text_to_speech_task, celer
 from celery.result import AsyncResult
 import base64
 from core.database import SessionLocal, Job
+import faiss
+import json
+from core.redis_client import redis_client
+from Services.retrieval import fetch_embedded
+from Services.llm_engine import request_transmission
+import numpy as np
+
 
 app = FastAPI()
 
@@ -23,6 +30,11 @@ app.add_middleware(
 class PodcastRequest(BaseModel):
     text: str
     model : str
+
+class QuestionRequest(BaseModel):
+    question: str
+    job_id : str
+    live_memory : str = ""
 
 @app.post("/generate-text-to-speech")
 async def generate_tts(request: PodcastRequest):
@@ -71,6 +83,21 @@ async def extract_text_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail="Something went wrong while extraction from pdf.")
     except Exception as e:
         raise HTTPException (status_code= 500, detail="Something went wrong on our side")
+    
+@app.post("/ask-question")
+async def ask_question(request: QuestionRequest):
+    try:
+        bytes = redis_client.get(f"index:{request.job_id}")
+        if not bytes:
+            raise HTTPException(status_code=500, detail="Please wait for the podcast to generate to ask the question.")
+        f_index = faiss.deserialize_index(np.frombuffer(bytes, dtype=np.uint8))
+        original_chunk = json.loads(redis_client.get(f"chunks:{request.job_id}"))
+        relevant_chunk = fetch_embedded(f_index,original_chunk, request.question)
+        response = request_transmission("\n\n".join(relevant_chunk), quest=request.question, task="question")
+        memo_system = request_transmission(request.live_memory,response, task="memo_add")
+        return {"answer": response, "live_memory": memo_system}
+    except Exception as e:
+        raise
     
 
 @app.get("/job/podcast/{job_id}")
