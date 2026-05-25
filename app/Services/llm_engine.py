@@ -4,26 +4,63 @@ import riva.client
 from core.config import NVIDIA_API_KEY, NVIDIA_API_URL, LLM_MODEL, TEMPERATURE, MAX_TOKEN, RIVA_URI, RIVA_FUNCTION_ID
 from core.exceptions import ScriptGenerationError
 
-def request_transmission(chunk):
+def request_transmission(chunk, quest = None, task= None):
+    if task and task.lower()=="question":
+        llmprompt = f"""You are a Subject Matter Expert answering questions using the context provided
+        Context:{chunk}
+        User Question:{quest}
+        Instructions:
+        - CRITICAL: You MUST start your response with exactly one of these three prefixes: ANSWER:, CLARIFY:, or OUT_OF_CONTEXT:
+        - CRITICAL: Never respond without one of these prefixes. No exceptions.
+        1. Determine whether the question is:
+        - Clear and answerable from the context 
+        - Vague or ambiguous 
+        - Outside the provided context
+        2. If the question is vague or unclear, respond with EXACTLY:
+        CLARIFY: <one short clarifying question>
+        3. If the answer exists in the context, respond with :
+        ANSWER: <clear concise answer based only on the context>
+        4. If the question is outside the provided context, respond with EXACTLY:
+        OUT_OF_CONTEXT: This topic is not covered in your PDF. Do you want a general answer instead?
+        Rules:- Prefer the provided context over outside knowledge if the provided context has the correct fact, formula, understanding of the     concept.
+        - Do NOT hallucinate details not present in the context.
+        - Keep answers concise and directly relevant.
+        - Ask only one clarification question at a time.
+        
+        """
 
-    prompt = f"""
-    Turn the following PDF content into an engaging podcast-style explanation.
+    elif task and task.lower()=="memo_add":
+        llmprompt = f"""You are a memory summarizer. Given the following conversation exchange, update the existing summary with the new information.
 
-    Rules:
-    - Make it conversational
-    - Make it beginner friendly
-    - Explain concepts naturally
-    - Use simple language
-    - Sound like a podcast host teaching listeners
-    - Add excitement and smooth transitions
-    - Avoid robotic explanations
-    - CRITICAL: DO NOT write stage directions, sound effects, or speaker labels.
-    - CRITICAL: Do not use brackets like [soft music] or (laughs). Write ONLY the spoken words.
+        Existing Summary:
+        {chunk}
 
-    PDF Content:
+        New Exchange:
+        {quest}
 
-    {chunk}
-    """
+        Summarize the entire conversation so far into concise bullet points. Maximum 10 points. Be brief — each point should be one sentence."""
+    elif task and task.lower() == "clarified-answer":
+        llmprompt = f""""""
+
+    else:
+        llmprompt = f"""
+        Turn the following PDF content into an engaging podcast-style explanation.
+
+        Rules:
+        - Make it conversational
+        - Make it beginner friendly
+        - Explain concepts naturally
+        - Use simple language
+        - Sound like a podcast host teaching listeners
+        - Add excitement and smooth transitions
+        - Avoid robotic explanations
+        - CRITICAL: DO NOT write stage directions, sound effects, or speaker labels.
+        - CRITICAL: Do not use brackets like [soft music] or (laughs). Write ONLY the spoken words.
+
+        PDF Content:
+
+        {chunk}
+        """
 
     url = NVIDIA_API_URL
 
@@ -36,7 +73,7 @@ def request_transmission(chunk):
         "messages": [
             {
                 "role": "user",
-                "content": prompt
+                "content": llmprompt
             }
         ],
         "temperature": TEMPERATURE,

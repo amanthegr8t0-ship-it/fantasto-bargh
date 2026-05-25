@@ -19,7 +19,7 @@ def generate_pdf_to_podcast(user_input, model, on_progress1 = None, on_progress2
     pipeline.generate_script(on_progress1 = on_progress1)
     pipeline.generate_audio(model, on_progress2 = on_progress2)
 
-    return pipeline.final_audio_bytes
+    return pipeline.final_audio_bytes,pipeline.allchunks
 
 def generate_text_from_pdf(pdf):
 

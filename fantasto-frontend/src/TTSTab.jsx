@@ -1,12 +1,20 @@
 
 import { useState, useRef } from 'react'
 function TTSTab({model}) {const [trackStatus, setTrackStatus] = useState("")
-const [finalTtsResult, setFinalTtsResult] = useState(null)
+  const [finalTtsResult, setFinalTtsResult] = useState(null)
 const [ttxtext, setTtstext] = useState("")
 const [isloading, setisloading] = useState(false)
 const intervalRef = useRef(null)
 
-const Send = async () => {setisloading(true) 
+const Send = async () => {setTrackStatus("")
+  if (!ttxtext.trim()) {
+    alert("Please enter some text first.")
+    setisloading(false)
+    return
+}
+try{
+  setisloading(true) 
+  setFinalTtsResult(null)
     clearInterval(intervalRef.current)
   const response = await fetch("http://127.0.0.1:8000/generate-text-to-speech", {
     method: "POST",
@@ -23,12 +31,18 @@ const Send = async () => {setisloading(true)
     clearInterval(intervalRef.current)
     const audioBlob = await statusResponse.blob()
     setFinalTtsResult(audioBlob)
+    setTrackStatus("completed")
     setisloading(false)
   } else {
-  const statusData = await statusResponse.json()
-  setTrackStatus(statusData.status)
+    const statusData = await statusResponse.json()
+    setTrackStatus(statusData.status)
   }
-  }, 3000)
+}, 3000)
+}
+catch(e){
+  setisloading(false)
+  setTrackStatus("Failed.Try again")
+}
   }
   return (
     <div className="panel panel-tts">
