@@ -3,6 +3,7 @@ services:
   - type: web
     name: fantasto-bargh-api
     runtime: python
+    rootDir: app
     buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn api.api:app --host 0.0.0.0 --port $PORT"
     envVars:
@@ -13,8 +14,9 @@ services:
   - type: worker
     name: fantasto-bargh-worker
     runtime: python
+    rootDir: app
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "celery -A api.tasks worker --loglevel=info"
+    startCommand: "celery -A api.tasks worker --loglevel=info --pool=solo"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
