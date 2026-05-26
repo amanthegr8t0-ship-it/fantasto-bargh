@@ -5,18 +5,7 @@ services:
     runtime: python
     rootDir: app
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn api.api:app --host 0.0.0.0 --port $PORT"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
-
-  # 2. The Background Worker (Handles audio generation)
-  - type: worker
-    name: fantasto-bargh-worker
-    runtime: python
-    rootDir: app
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "celery -A api.tasks worker --loglevel=info --pool=solo"
+    startCommand: "bash start.sh"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
