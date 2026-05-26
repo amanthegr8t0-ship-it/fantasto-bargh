@@ -10,6 +10,8 @@ def request_transmission(chunk, quest = None, task= None):
         Context:{chunk}
         User Question:{quest}
         Instructions:
+        - CRITICAL: You MUST start your response with exactly one of these three prefixes: ANSWER:, CLARIFY:, or OUT_OF_CONTEXT:
+        - CRITICAL: Never respond without one of these prefixes. No exceptions.
         1. Determine whether the question is:
         - Clear and answerable from the context 
         - Vague or ambiguous 
@@ -23,7 +25,9 @@ def request_transmission(chunk, quest = None, task= None):
         Rules:- Prefer the provided context over outside knowledge if the provided context has the correct fact, formula, understanding of the     concept.
         - Do NOT hallucinate details not present in the context.
         - Keep answers concise and directly relevant.
-        - Ask only one clarification question at a time."""
+        - Ask only one clarification question at a time.
+        
+        """
 
     elif task and task.lower()=="memo_add":
         llmprompt = f"""You are a memory summarizer. Given the following conversation exchange, update the existing summary with the new information.
