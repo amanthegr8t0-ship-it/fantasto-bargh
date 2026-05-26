@@ -14,7 +14,8 @@ def _require(key: str) -> str:
     return value.strip()
 
 NVIDIA_API_KEY = _require("NVIDIA_API_KEY")
-
+DB_URL = _require("DB_URL")
+REDIS_URL = _require("REDIS_URL")
 CHUNK_SIZE = 1000
 MAX_CHAR = 200
 RIVA_URI = "grpc.nvcf.nvidia.com:443"
@@ -31,5 +32,5 @@ CONTEXT_SIZE = 150
 VOICE_OPTION = ["Jason","Aria"]
 # FASTAPI_URL = os.getenv("FASTAPI_URL", "https://fantasto-bargh.onrender.com")
 FASTAPI_URL = os.getenv("FASTAPI_URL", "http://127.0.0.1:8000")
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-DB_URL = os.getenv("DB_URL", "mysql+pymysql://root:A1M13A1N14%40p@localhost/fantasto_bargh")
+# REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+# DB_URL = os.getenv("DB_URL", "mysql+pymysql://root:A1M13A1N14%40p@localhost/fantasto_bargh")
