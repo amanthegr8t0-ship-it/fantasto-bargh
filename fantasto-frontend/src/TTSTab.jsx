@@ -5,25 +5,29 @@ function TTSTab({model}) {const [trackStatus, setTrackStatus] = useState("")
 const [ttxtext, setTtstext] = useState("")
 const [isloading, setisloading] = useState(false)
 const intervalRef = useRef(null)
-
-const Send = async () => {setTrackStatus("")
+const API_URL = import.meta.env.VITE_API_URL
+const Send = async () => {
   if (!ttxtext.trim()) {
     alert("Please enter some text first.")
     setisloading(false)
     return
 }
 try{
+  setTrackStatus("Pending")
   setisloading(true) 
   setFinalTtsResult(null)
     clearInterval(intervalRef.current)
-  const response = await fetch("http://127.0.0.1:8000/generate-text-to-speech", {
+  const response = await fetch(`${API_URL}/generate-text-to-speech`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text: ttxtext, model: model })})
+  if (!response.ok) {
+    throw new Error(`Server error: ${response.status}`)
+}
   const data = await response.json()
   console.log(data)
   intervalRef.current = setInterval(async () => {
-  const statusResponse = await fetch(`http://127.0.0.1:8000/job/tts/${data.job_id}`)
+  const statusResponse = await fetch(`${API_URL}/job/tts/${data.job_id}`)
   
   const contentType = statusResponse.headers.get("content-type")
   if (contentType === "audio/mpeg") {
@@ -41,7 +45,7 @@ try{
 }
 catch(e){
   setisloading(false)
-  setTrackStatus("Failed.Try again")
+  setTrackStatus(e.message)
 }
   }
   return (
@@ -56,7 +60,15 @@ catch(e){
       ></textarea>
       <div className="panel-actions">
         <button className="primary-button" onClick={Send} disabled={isloading}>Send</button>
-        <span className="status-text">{trackStatus}</span>
+        {isloading ? (
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <div className="spinner"></div>
+    <span className="status-text">{trackStatus}</span>
+  </div>
+) : (
+  <span className="status-text">{trackStatus}</span>
+)}
+        
       </div>
       {finalTtsResult && (
         <div className="audio-card">

@@ -6,6 +6,7 @@ function PODCASTTAB({model}){
   const [finalResult, setFinalResult] = useState(null)
   const [isloading, setisloading] = useState(false)
   const [Qarea, setQarea] = useState(false)
+  const [isQALoading, setIsQALoading] = useState(false)
   const [pdfFile, setPdfFile] = useState(null)
   const [question, setQuestion] = useState("")
   const [answer, setAnswer] = useState("")
@@ -17,26 +18,29 @@ function PODCASTTAB({model}){
   const [mode, setMode] = useState("question")
   const [jobId, setJobId] = useState(null)
   const intervalRef = useRef(null)
+  const API_URL = import.meta.env.VITE_API_URL
 
 
-  const Generate = async () => {setTrackStatus("")
+  const Generate = async () => {
+    
+    
     if (!pdfFile) {
     alert("Please upload a PDF first.")
     setisloading(false)
     return
-}try {
+}try {setTrackStatus("pending")
     setisloading(true)
     setFinalResult(null)
     clearInterval(intervalRef.current)
     const formData = new FormData()
     formData.append("file", pdfFile)
-    const extractResponse = await fetch("http://127.0.0.1:8000/extract-pdf-text", {
+    const extractResponse = await fetch(`${API_URL}/extract-pdf-text`, {
         method: "POST",
         body: formData
       })
     const extractedText = await extractResponse.text()
 
-    const response = await fetch("http://127.0.0.1:8000/generate-pdf-to-podcast", {
+    const response = await fetch(`${API_URL}/generate-pdf-to-podcast`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text: extractedText, model: model })})
@@ -45,7 +49,7 @@ function PODCASTTAB({model}){
     console.log(data)
     setJobId(data.job_id)
     intervalRef.current = setInterval(async () => {
-    const statusResponse = await fetch(`http://127.0.0.1:8000/job/podcast/${data.job_id}`)
+    const statusResponse = await fetch(`${API_URL}/job/podcast/${data.job_id}`)
     
     const contentType = statusResponse.headers.get("content-type")
     if (contentType === "audio/mpeg") {
@@ -57,22 +61,24 @@ function PODCASTTAB({model}){
       setisloading(false)
     } else {
     const statusData = await statusResponse.json()
-    setTrackStatus(statusData.status)
+    setTrackStatus(statusData.Status)
     }
     }, 3000)
   }
     catch (e) {
         setisloading(false)
-        setTrackStatus("Failed.Try again")
+        setTrackStatus(e.message)
     }
   }
 
 const Question = async () => {
+  setTrackStatus("Pending")
+  setIsQALoading(true)
   setOutOfContext("")
   setAnswer("")
   setClarifyQuestion("")
   console.log(mode)
-    const response = await fetch("http://127.0.0.1:8000/ask-question", {
+    const response = await fetch(`${API_URL}/ask-question`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: question, job_id: jobId, live_memory: lMemo })
@@ -81,25 +87,31 @@ const Question = async () => {
     if (data.answer.startsWith("ANSWER:")){
       setAnswer(data.answer.replace("ANSWER:", "").trim())
       setLMemo(data.live_memory)
+      setIsQALoading(false)
       setMode("question")
     }
     else if (data.answer.startsWith("CLARIFY:")){
       setClarifyQuestion(data.answer.replace("CLARIFY:", "").trim())
       originalQuestion.current=question
       setMode("clarify")
+      setIsQALoading(false)
       
     }
     else if (data.answer.startsWith("OUT_OF_CONTEXT:")){
       setOutOfContext(data.answer.replace("OUT_OF_CONTEXT:", "").trim())
       originalQuestion.current=question
       setMode("out_of_context")
+      setIsQALoading(false)
       
     }
     
   }
   const SubmitClarification = async () => {
+    setAnswer("")
+    setClarifyQuestion("")
+    setIsQALoading(true)
     const combinedQuestion = `Original question: ${originalQuestion.current}\nClarifying question: ${clarifyQuestion}\nUser's answer: ${clarificationAnswer}`
-    const response = await fetch("http://127.0.0.1:8000/ask-question", {
+    const response = await fetch(`${API_URL}/ask-question`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: combinedQuestion, job_id: jobId, live_memory: lMemo })
@@ -109,11 +121,15 @@ const Question = async () => {
     setLMemo(data.live_memory)
     setMode("question")
     setClarificationAnswer("")
+    setIsQALoading(false)
   }
 
   const SubmitoutOfContext = async () => {
+    setAnswer("")
+    setOutOfContext("")
+    setIsQALoading(true)
     const combinedQuestion = `Original question: ${originalQuestion.current}\nopen to general answer: ${outOfContext}`
-    const response = await fetch("http://127.0.0.1:8000/ask-question", {
+    const response = await fetch(`${API_URL}/ask-question`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: combinedQuestion, job_id: jobId, live_memory: lMemo })
@@ -122,6 +138,7 @@ const Question = async () => {
     setAnswer(data.answer.replace("ANSWER:", "").trim())
     setLMemo(data.live_memory)
     setMode("question")
+    setisloading(false)
 
       }
 
@@ -140,7 +157,14 @@ const Question = async () => {
       </div>
       <div className="panel-actions">
         <button className="primary-button" onClick={Generate} disabled={isloading}>Generate</button>
-        <span className="status-text">{trackStatus}</span>
+        {isloading ? (
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className="spinner"></div>
+            <span className="status-text">{trackStatus}</span>
+          </div>
+        ) : (
+          <span className="status-text">{trackStatus}</span>
+        )}
       </div>
       {finalResult && (
   <div>
@@ -153,6 +177,8 @@ const Question = async () => {
         {mode !== "out_of_context" && (
   <div>
   <textarea
+        className="panel-textarea"
+        style={{ minHeight: "100px" }}
         value={mode === "clarify" ? clarificationAnswer : question}
         onChange={(e) => mode === "clarify" ? setClarificationAnswer(e.target.value) : setQuestion(e.target.value)}
         placeholder={mode === "clarify" ? "Enter your clarification..." : "Enter Your Question."}
@@ -163,19 +189,27 @@ const Question = async () => {
             mode === "clarify" ? SubmitClarification :
             SubmitoutOfContext
           } disabled={isloading}>Send</button>
+          {isloading && (
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div className="spinner"></div>
+              <span>Thinking...</span>
+            </div>
+          )}
         </div>
       </div>
       
     )}
-    {clarifyQuestion && <div>{clarifyQuestion}</div>}
-    {outOfContext && (
-      <div>
-        <p>{outOfContext}</p>
-        <button className="primary-button" onClick={SubmitoutOfContext}>Yes, get general answer</button>
-        <button className="primary-button" onClick={() => { setOutOfContext(""); setMode("question") }}>No thanks</button>
-      </div>
-    )}
-    {answer && <div>{answer}</div>}
+    {clarifyQuestion && <div className="answer-box">{clarifyQuestion}</div>}
+   {outOfContext && (
+  <div className="answer-box" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <p>{outOfContext}</p>
+    <div style={{ display: "flex", gap: "12px" }}>
+      <button className="primary-button" onClick={SubmitoutOfContext}>Yes, get general answer</button>
+      <button className="primary-button" onClick={() => { setOutOfContext(""); setMode("question") }}>No thanks</button>
+    </div>
+  </div>
+)}
+    {answer && <div className="answer-box">{answer}</div>}
   </div>
 )}
 </div>

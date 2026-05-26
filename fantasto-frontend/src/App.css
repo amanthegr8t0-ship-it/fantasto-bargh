@@ -383,6 +383,16 @@
   justify-content: space-between;
 }
 
+.answer-box {
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(124, 91, 255, 0.22);
+  background: rgba(12, 19, 44, 0.92);
+  color: #f1f2ff;
+  line-height: 1.6;
+}
+
+
 .primary-button {
   border: none;
   background: linear-gradient(135deg, #7c5bff, #63d6ff 65%);
@@ -410,6 +420,19 @@
   color: #d8dafe;
   font-size: 1rem;
   min-height: 1.4rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(124, 91, 255, 0.2);
+  border-top-color: #7c5bff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .audio-card {

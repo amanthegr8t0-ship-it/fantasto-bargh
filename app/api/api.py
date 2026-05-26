@@ -22,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "http://172.29.80.223:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -58,7 +58,7 @@ async def generate_podcast(request: PodcastRequest):
     try:
         job = generate_podcast_task.delay(request.text, request.model)  # fires and forgets
         db = SessionLocal()
-        db.add(Job(job_id=job.id, status="PENDING", created_at=datetime.now()))
+        db.add(Job(job_id=job.id, status="Pending", created_at=datetime.now()))
         db.commit()
         db.close()
         return {"job_id": job.id}
