@@ -22,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://172.29.80.223:5173"],
+    allow_origins=["http://localhost:5173", "http://172.29.80.223:5173","https://fantasto-bargh.vercel.app","https://fantasto-bargh.vercel.app/",],
     allow_methods=["*"],
     allow_headers=["*"],
 )
