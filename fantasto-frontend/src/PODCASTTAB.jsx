@@ -188,8 +188,8 @@ const Question = async () => {
             mode === "question" ? Question :
             mode === "clarify" ? SubmitClarification :
             SubmitoutOfContext
-          } disabled={isloading}>Send</button>
-          {isloading && (
+          } disabled={isQALoading}>Send</button>
+          {isQALoading && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <div className="spinner"></div>
               <span>Thinking...</span>
