@@ -88,7 +88,7 @@ class PodcastPipeline:
             self.allchunks = ch.create_audio_chunks(clean_text)
             tts_service = Ai_eg.authorization()
             with  tempfile.TemporaryDirectory() as tem_dir:
-                with ThreadPoolExecutor(max_workers=5) as executor:
+                with ThreadPoolExecutor(max_workers=2) as executor:
                     future_to_index = {
                         executor.submit(
                             ag.generate_studio_audio, 
@@ -109,6 +109,7 @@ class PodcastPipeline:
                                 on_progress2(completed_count, len(self.allchunks))
                         except Exception as e:
                             logger.error(f"thread for audio_chunk {index+1} failed: {e}")
+                            raise AudioGenerationError(f"Audio generation failed for chunk {index+1}: {e}") from e
 
 
                 self.final_audio_bytes = ag.export_the_audio(tem_dir, self.allchunks)
