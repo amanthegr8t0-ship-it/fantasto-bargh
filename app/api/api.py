@@ -41,7 +41,7 @@ async def generate_tts(request: PodcastRequest):
     try:
         job = generate_text_to_speech_task.delay(request.text, request.model)  # fires and forgets
         db = SessionLocal()
-        db.add(Job(job_id=job.id, status="PENDING", created_at=datetime.now()))
+        db.add(Job(job_id=job.id, status="Pending", created_at=datetime.now()))
         db.commit()
         db.close()
         return {"job_id": job.id}
