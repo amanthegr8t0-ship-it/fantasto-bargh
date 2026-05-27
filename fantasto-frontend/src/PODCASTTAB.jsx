@@ -125,9 +125,9 @@ const Question = async () => {
 
   const SubmitoutOfContext = async () => {
     setAnswer("")
-    setOutOfContext("")
     setIsQALoading(true)
     const combinedQuestion = `Original question: ${originalQuestion.current}\nopen to general answer: ${outOfContext}`
+    setOutOfContext("")
     const response = await fetch(`${API_URL}/ask-question`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
