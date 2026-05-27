@@ -3,8 +3,12 @@ import requests
 import riva.client
 from core.config import NVIDIA_API_KEY, NVIDIA_API_URL, LLM_MODEL, TEMPERATURE, MAX_TOKEN, RIVA_URI, RIVA_FUNCTION_ID
 from core.exceptions import ScriptGenerationError
+import logging
+
+logger = logging.getLogger(__name__)
 
 def request_transmission(chunk, quest = None, task= None):
+    
     if task and task.lower()=="question":
         llmprompt = f"""You are a Subject Matter Expert answering questions using the context provided
         Context:{chunk}
@@ -79,29 +83,26 @@ def request_transmission(chunk, quest = None, task= None):
         "temperature": TEMPERATURE,
         "max_tokens": MAX_TOKEN
     }
-    
-    try:
-        response = requests.post(
-            url,
-            headers=headers,
-            json=payload
-        )
-        response.raise_for_status()
-        result = response.json()
+    for attempt in range (3):
+        try:
+            response = requests.post(
+                url,
+                headers=headers,
+                json=payload
+            )
+            response.raise_for_status()
+            result = response.json()
 
-        chunk_answer = result["choices"][0]["message"]["content"]
+            chunk_answer = result["choices"][0]["message"]["content"]
+            
+            chunk_podcast_script = chunk_answer + "\n\n"
+            return chunk_podcast_script
         
-        chunk_podcast_script = chunk_answer + "\n\n"
-        return chunk_podcast_script
-    
-    except requests.exceptions.HTTPError as e:
-        raise RuntimeError(f"NVIDIA API request failed (HTTP {e.response.status_code}): {e}") from e
-    except requests.exceptions.ConnectionError as e :
-        raise RuntimeError(f"Could not reach NVIDIA API — check your connection: {e}") from e
-    except (KeyError,IndexError) as e:
-        raise RuntimeError(f"Unexpected API response structure: {e}") from e
-    except Exception as e:
-        raise ScriptGenerationError(f"Script generation failed: {e}") from e
+        except Exception as e:
+            logger.warning(f"LLM call attempt {attempt + 1} failed : {e}")
+            if attempt == 2:
+                logger.error(f"LLM call failed. {e}")
+                raise ScriptGenerationError(f"LLM call failed. {e}")
 
 def authorization():
     auth = riva.client.Auth(
