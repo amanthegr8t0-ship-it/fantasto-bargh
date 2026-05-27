@@ -72,7 +72,6 @@ function PODCASTTAB({model}){
   }
 
 const Question = async () => {
-  setTrackStatus("Pending")
   setIsQALoading(true)
   setOutOfContext("")
   setAnswer("")
@@ -138,9 +137,8 @@ const Question = async () => {
     setAnswer(data.answer.replace("ANSWER:", "").trim())
     setLMemo(data.live_memory)
     setMode("question")
-    setisloading(false)
-
-      }
+    setIsQALoading(false)
+    }
 
   return (
     <div className="panel panel-podcast">
