@@ -1,12 +1,13 @@
-
 import { useState, useRef } from 'react'
-function TTSTab({model}) {const [trackStatus, setTrackStatus] = useState("")
+
+function TTSTab({model}) {
+  const [trackStatus, setTrackStatus] = useState("")
   const [finalTtsResult, setFinalTtsResult] = useState(null)
-const [ttxtext, setTtstext] = useState("")
-const [isloading, setisloading] = useState(false)
-const intervalRef = useRef(null)
-const API_URL = import.meta.env.VITE_API_URL
-const Send = async () => {
+  const [ttxtext, setTtstext] = useState("")
+  const [isloading, setisloading] = useState(false)
+  const intervalRef = useRef(null)
+  const API_URL = import.meta.env.VITE_API_URL
+  const Send = async () => {
   if (!ttxtext.trim()) {
     alert("Please enter some text first.")
     setisloading(false)
