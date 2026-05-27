@@ -134,7 +134,7 @@ const Question = async () => {
       body: JSON.stringify({ question: combinedQuestion, job_id: jobId, live_memory: lMemo })
     })
     const data = await response.json()
-    setAnswer(data.answer.replace("ANSWER:", "").trim())
+    setAnswer(data.answer.replace("ANSWER:", "").replace("OUT_OF_CONTEXT:", "").trim())
     setLMemo(data.live_memory)
     setMode("question")
     setIsQALoading(false)
